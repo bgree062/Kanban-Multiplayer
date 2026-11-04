@@ -1,0 +1,9 @@
+{
+  "name": "kanban-flow-lab-multiplayer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {"dev":"vite --host 0.0.0.0", "build":"vite build", "preview":"vite preview --host 0.0.0.0"},
+  "dependencies": {"react":"^18.3.1", "react-dom":"^18.3.1", "recharts":"^2.15.0", "lucide-react":"^0.468.0", "@supabase/supabase-js":"^2.57.0"},
+  "devDependencies": {"vite":"^6.1.0", "@vitejs/plugin-react":"^4.3.4"}
+}
