@@ -21,3 +21,17 @@
 .site-links .text-button{white-space:nowrap}
 @media(max-width:840px){.site-nav .bar{height:auto;min-height:70px;display:flex;flex-wrap:wrap;justify-content:center;padding-top:12px;padding-bottom:7px;gap:6px 12px}.site-nav .brand{width:100%;justify-content:center}.site-links{display:flex;justify-content:flex-start;width:100%;gap:20px;overflow-x:auto;scrollbar-width:thin;padding:4px 0 5px}.site-links a{display:inline-flex!important;flex-shrink:0;font-size:12px}.site-links .text-button{flex-shrink:0}}
 @media print{.site-nav{display:none!important}}
+
+/* Multiplayer: independent player turns with direct board interactions */
+.mp-ticket{cursor:default;min-height:42px}
+.mp-ticket.can-drag{cursor:grab;touch-action:auto}
+.mp-ticket.can-drag:active{cursor:grabbing}
+.mp-ticket.eligible{border:2px solid #258551;box-shadow:0 0 0 2px #82c49b83}
+.ticket-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.ticket-action{font-size:10px;font-weight:750;border:1px solid #b9cbd9;border-radius:5px;background:#fff;padding:6px;cursor:pointer;color:#173650;line-height:1.2}
+.ticket-action.advance{background:#e7f4ea;border-color:#7fba92;color:#1b6841}
+.ticket-action.blocker{background:#fff4e2;border-color:#d6ac65;color:#895b13}
+.ticket-action:hover{filter:brightness(.96)}
+.column.valid-drop{outline:3px dashed #238150;outline-offset:-4px;background:#e0f6e8}
+.playing-card.completed{opacity:.55;background:#edf2f7}
+@media print {.ticket-actions{display:none!important}}
