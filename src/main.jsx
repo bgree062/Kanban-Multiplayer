@@ -156,7 +156,7 @@ function App(){
     <a className="mp-top-link" href="https://kanbanflowlab.com/#data-and-story">The Data &amp; The Story</a>
     <div className="mp-nav-group">
       <button className="mp-nav-trigger" type="button" aria-haspopup="true" aria-expanded={navMenu==='more'} onClick={()=>setNavMenu(v=>v==='more'?null:'more')}>More <span aria-hidden="true">⌄</span></button>
-      <div className={'mp-nav-popover mp-nav-popover-right'+(navMenu==='more'?' mp-nav-open':'')}><a href="https://kanbanflowlab.com/#about-me">About Me</a></div>
+      <div className={'mp-nav-popover mp-nav-popover-right'+(navMenu==='more'?' mp-nav-open':'')}><a href="https://kanbanflowlab.com/#journey">The Journey</a><a href="https://kanbanflowlab.com/#about-me">About Me</a></div>
     </div>
     {credential&&<button className="text-button mp-exit" onClick={leave}>Exit room</button>}
   </nav>
@@ -169,6 +169,7 @@ function App(){
     <a href="https://kanbanflowlab.com/#flow-evolution">Flow Evolution Lab</a>
     <a href="https://kanbanflowlab.com/#flow-assessment">Flow Assessment</a>
     <a href="https://kanbanflowlab.com/#data-and-story">The Data &amp; The Story</a>
+    <a href="https://kanbanflowlab.com/#journey">The Journey</a>
     <a href="https://kanbanflowlab.com/#about-me">About Me</a>
     {credential&&<button className="text-button" onClick={leave}>Exit room</button>}
   </nav>}</header>
