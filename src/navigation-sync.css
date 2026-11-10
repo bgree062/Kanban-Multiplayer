@@ -1,0 +1,28 @@
+/* Navigation alignment with kanbanflowlab.com; multiplayer gameplay styles are unchanged. */
+.site-nav .bar{position:relative}
+.mp-top-links{display:flex;align-items:center;gap:clamp(12px,1.6vw,24px);font-size:12px;font-weight:650;white-space:nowrap}
+.mp-top-link,.mp-nav-trigger{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:11px 1px 9px!important;color:#405972;background:transparent;border:0;border-bottom:2px solid transparent;font:inherit;font-weight:650;cursor:pointer;text-decoration:none}
+.mp-top-link:hover,.mp-nav-trigger:hover{color:#123f61}
+.mp-nav-group{position:relative;display:flex;align-items:center;height:100%}
+.mp-nav-group-active>.mp-nav-trigger{font-weight:800;color:#173650;border-bottom-color:#c89131}
+.mp-nav-popover{position:absolute;z-index:9999;top:calc(100% - 2px);left:0;min-width:226px;background:#fff;border:1px solid #dce4ee;border-radius:9px;box-shadow:0 12px 30px #18375024;padding:7px;display:none;white-space:normal}
+.mp-nav-popover-right{left:auto;right:0;min-width:150px}
+.mp-nav-group:hover>.mp-nav-popover,.mp-nav-group:focus-within>.mp-nav-popover,.mp-nav-popover.mp-nav-open{display:block}
+.mp-nav-popover a{display:flex;padding:11px 12px;border-radius:6px;color:#405972;text-decoration:none;font-size:12px;font-weight:650;align-items:center;gap:8px}
+.mp-nav-popover a:hover,.mp-nav-popover a:focus-visible{background:#f3f6f9;color:#173650}
+.mp-nav-popover a[aria-current='page']{background:#fff3db;color:#805112;font-weight:800}
+.mp-current{font-size:10px;color:#a26b17;margin-left:auto}
+.mp-exit{flex-shrink:0}
+.mp-mobile-toggle{display:none;cursor:pointer;background:#fff;border:1px solid #d2dfe9;border-radius:8px;padding:10px 12px;color:#173650;font-weight:750}
+.mp-mobile-nav{display:none}
+@media(max-width:900px){
+  .site-nav .bar{height:auto;min-height:75px;justify-content:space-between;flex-wrap:nowrap;padding-top:10px;padding-bottom:10px}
+  .site-nav .brand{width:auto;justify-content:flex-start}
+  .mp-top-links{display:none!important}
+  .mp-mobile-toggle{display:inline-flex;align-items:center}
+  .mp-mobile-nav{display:flex;flex-direction:column;gap:1px;background:#fff;border-top:1px solid #e2e9f0;padding:10px max(16px,calc((100% - 1120px)/2)) 16px}
+  .mp-mobile-nav a,.mp-mobile-nav button{padding:10px 12px;text-align:left;color:#344c63;font-weight:650;font-size:13px;border-radius:6px}
+  .mp-mobile-nav a:hover,.mp-mobile-nav a[aria-current='page']{background:#fff3db;color:#805112}
+  .mp-mobile-nav strong{padding:10px 12px 3px;color:#77889b;font-size:11px;letter-spacing:.08em}
+}
+@media print{.mp-mobile-nav,.mp-mobile-toggle{display:none!important}}

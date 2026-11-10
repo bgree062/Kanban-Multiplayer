@@ -5,6 +5,7 @@ import {AreaChart,Area,BarChart,Bar,LineChart,Line,CartesianGrid,XAxis,YAxis,Too
 import {Layers3,Users,ArrowRight,Printer,CheckCircle,Copy,RotateCcw,Clock,AlertTriangle,ShieldCheck,Info,ExternalLink} from 'lucide-react';
 import {COLUMNS,tally,age,reportPeriod,drawCard,limitAt,validActions} from './simulation.js';
 import './style.css';
+import './navigation-sync.css';
 
 const SUPA_URL=import.meta.env.VITE_SUPABASE_URL;
 const SUPA_KEY=import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -52,6 +53,8 @@ function ChartResults({game,players,code}){
 }
 function App(){
   const [credential,setCredential]=useState(initialCredentials);
+  const [navMenu,setNavMenu]=useState(null);
+  const [mobileNavOpen,setMobileNavOpen]=useState(false);
   const [room,setRoom]=useState(null);
   const [error,setError]=useState('');
   const [loading,setLoading]=useState(false);
@@ -139,7 +142,36 @@ function App(){
   const canToggleBlock=task=>legal.options.some(a=>a.id===task.id&&(task.blocked?['unblock','helpUnblock']:['block']).includes(a.type));
   const status=(col)=>{if(col===0||col===3)return null;const used=board.filter(t=>t.status===col).length;const limit=limitAt(day,game?.wip);if(!Number.isFinite(limit))return {used,limit:'∞',name:'unlimited',label:'Unlimited WIP'};return {used,limit,name:used>limit?'exceeded':used===limit?'full':'available',label:used>limit?'WIP LIMIT EXCEEDED':used===limit?'AT CAPACITY — FINISH FIRST':'CAPACITY AVAILABLE'}};
 
-  return <><header className="site-nav"><div className="wrap bar"><a className="brand" href="/"><Layers3 color="#d2a14e"/><span><strong>Kanban Flow Lab</strong><small>MULTIPLAYER LAB</small></span></a><nav className="bar-right site-links" aria-label="Website navigation"><a href="https://kanbanflowlab.com/#choose-simulation">Home</a><a href="https://kanbanflowlab.com/#facilitated">Facilitated</a><a href="/" aria-current="page" className="active-link">Collaborative</a><a href="https://kanbanflowlab.com/#flow-evolution">Flow Evolution Lab</a><a href="https://kanbanflowlab.com/#flow-assessment">Flow Assessment</a><a href="https://kanbanflowlab.com/#about-me">About Me</a>{credential&&<button className="text-button" onClick={leave}>Exit room</button>}</nav></div></header>
+  return <><header className="site-nav"><div className="wrap bar"><a className="brand" href="/"><Layers3 color="#d2a14e"/><span><strong>Kanban Flow Lab</strong><small>MULTIPLAYER LAB</small></span></a><nav className="mp-top-links" aria-label="Website navigation">
+    <a className="mp-top-link" href="https://kanbanflowlab.com/#home">Home</a>
+    <div className="mp-nav-group mp-nav-group-active">
+      <button className="mp-nav-trigger" type="button" aria-haspopup="true" aria-expanded={navMenu==='simulations'} onClick={()=>setNavMenu(v=>v==='simulations'?null:'simulations')}>Simulations <span aria-hidden="true">⌄</span></button>
+      <div className={'mp-nav-popover'+(navMenu==='simulations'?' mp-nav-open':'')}>
+        <a href="https://kanbanflowlab.com/#facilitated">Facilitated Simulation</a>
+        <a href="/" aria-current="page">Collaborative Simulation <span className="mp-current">Current</span></a>
+        <a href="https://kanbanflowlab.com/#flow-evolution">Flow Evolution Lab</a>
+      </div>
+    </div>
+    <a className="mp-top-link" href="https://kanbanflowlab.com/#flow-assessment">Flow Assessment</a>
+    <a className="mp-top-link" href="https://kanbanflowlab.com/#data-and-story">The Data &amp; The Story</a>
+    <div className="mp-nav-group">
+      <button className="mp-nav-trigger" type="button" aria-haspopup="true" aria-expanded={navMenu==='more'} onClick={()=>setNavMenu(v=>v==='more'?null:'more')}>More <span aria-hidden="true">⌄</span></button>
+      <div className={'mp-nav-popover mp-nav-popover-right'+(navMenu==='more'?' mp-nav-open':'')}><a href="https://kanbanflowlab.com/#about-me">About Me</a></div>
+    </div>
+    {credential&&<button className="text-button mp-exit" onClick={leave}>Exit room</button>}
+  </nav>
+  <button className="mp-mobile-toggle" type="button" aria-expanded={mobileNavOpen} onClick={()=>setMobileNavOpen(v=>!v)}>{mobileNavOpen?'Close ×':'Menu ☰'}</button></div>
+  {mobileNavOpen&&<nav className="mp-mobile-nav" aria-label="Mobile website navigation">
+    <a href="https://kanbanflowlab.com/#home">Home</a>
+    <strong>Simulations</strong>
+    <a href="https://kanbanflowlab.com/#facilitated">Facilitated Simulation</a>
+    <a href="/" aria-current="page" onClick={()=>setMobileNavOpen(false)}>Collaborative Simulation</a>
+    <a href="https://kanbanflowlab.com/#flow-evolution">Flow Evolution Lab</a>
+    <a href="https://kanbanflowlab.com/#flow-assessment">Flow Assessment</a>
+    <a href="https://kanbanflowlab.com/#data-and-story">The Data &amp; The Story</a>
+    <a href="https://kanbanflowlab.com/#about-me">About Me</a>
+    {credential&&<button className="text-button" onClick={leave}>Exit room</button>}
+  </nav>}</header>
   <main className="wrap app-layout">
     {!credential?<><div className="intro"><p className="eyebrow dark">MULTIPLAYER SIMULATION</p><h1>Same board.<br/><em>Different computers.</em></h1><p>Create a room for your class or join a team already playing. Choose how to participate, then personalize your identity. The original simulator remains unchanged.</p></div>
       {!configured&&<div className="notice warning"><AlertTriangle size={20}/> Setup required: add your Supabase URL and publishable key to Vercel.</div>}
