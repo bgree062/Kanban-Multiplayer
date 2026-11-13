@@ -115,14 +115,14 @@ function App(){
     :null;
   const phaseCheckpoint=phaseCheckpointStep==='complete'?null:phaseCheckpointStep;
   const phaseCheckpointInfo=day===11?{
-    finished:'Phase 1 · Days 1–10', heading:'What did we experience without WIP limits?',
-    questions:['What happened when several items were started at once?','Where did work wait or become blocked?','What helped the team finish work, rather than just start it?'],
+    finished:'Phase 1 · Days 1–10', heading:'How was your experience?',
+    questions:['What stood out to you during this phase?','What went well, and what was frustrating?','What did you notice about how the team worked together?'],
     changeHeading:'Phase 2 · Limit WIP and talk daily',
     changes:['Working on and Review each have a WIP limit of 3.','Keep the same board and work items so you can compare the experience.','Begin each day with a short stand-up led by a selected player.'],
     after:'Next, complete the Day 11 daily stand-up before cards are revealed.'
   }:day===21?{
-    finished:'Phase 2 · Days 11–20', heading:'What changed when we limited WIP?',
-    questions:['Did you notice more finishing, helping, or waiting?','Where did bottlenecks and blocked work appear?','Which changes seem worth carrying into the next experiment?'],
+    finished:'Phase 2 · Days 11–20', heading:'How was your experience with and without WIP limits?',
+    questions:['What felt different between the two phases?','What changed in how the team started, finished, or helped with work?','What would you keep or adjust going forward?'],
     changeHeading:'Phase 3 · Fresh board, same focus on flow',
     changes:['Start a fresh board with 30 new tasks; earlier results remain available.','Keep WIP limits of 3 in Working on and Review.','The facilitator chooses a 10- or 20-day experiment; daily stand-ups continue.'],
     after:'Next, the facilitator chooses the Phase 3 duration.'
