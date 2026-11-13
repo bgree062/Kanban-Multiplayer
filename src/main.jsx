@@ -6,6 +6,7 @@ import {Layers3,Users,ArrowRight,Printer,CheckCircle,Copy,RotateCcw,Clock,AlertT
 import {COLUMNS,tally,age,reportPeriod,drawCard,limitAt,validActions} from './simulation.js';
 import './style.css';
 import './navigation-sync.css';
+import './phase-checkpoints.css';
 
 const SUPA_URL=import.meta.env.VITE_SUPABASE_URL;
 const SUPA_KEY=import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -105,6 +106,34 @@ function App(){
   const complete=gate==='done';
   const showDay=game?.day||1;
   const leader=game&&day>10?roomMembers.find(p=>p.id===game.leaders[day]):null;
+  // Shared room checkpoint: the Supabase RPC records each host confirmation so
+  // all participants see the same reflection / explanation before phase changes.
+  const phaseCheckpointEligible=(day===11&&gate==='dsu')||(day===21&&gate==='duration')||(day===31&&gate==='wip');
+  const savedCheckpoint=game?.phase_checkpoint;
+  const phaseCheckpointStep=phaseCheckpointEligible
+    ?(savedCheckpoint?.day===day&&savedCheckpoint?.gate===gate?savedCheckpoint.step:'reflection')
+    :null;
+  const phaseCheckpoint=phaseCheckpointStep==='complete'?null:phaseCheckpointStep;
+  const phaseCheckpointInfo=day===11?{
+    finished:'Phase 1 · Days 1–10', heading:'What did we experience without WIP limits?',
+    questions:['What happened when several items were started at once?','Where did work wait or become blocked?','What helped the team finish work, rather than just start it?'],
+    changeHeading:'Phase 2 · Limit WIP and talk daily',
+    changes:['Working on and Review each have a WIP limit of 3.','Keep the same board and work items so you can compare the experience.','Begin each day with a short stand-up led by a selected player.'],
+    after:'Next, complete the Day 11 daily stand-up before cards are revealed.'
+  }:day===21?{
+    finished:'Phase 2 · Days 11–20', heading:'What changed when we limited WIP?',
+    questions:['Did you notice more finishing, helping, or waiting?','Where did bottlenecks and blocked work appear?','Which changes seem worth carrying into the next experiment?'],
+    changeHeading:'Phase 3 · Fresh board, same focus on flow',
+    changes:['Start a fresh board with 30 new tasks; earlier results remain available.','Keep WIP limits of 3 in Working on and Review.','The facilitator chooses a 10- or 20-day experiment; daily stand-ups continue.'],
+    after:'Next, the facilitator chooses the Phase 3 duration.'
+  }:{
+    finished:'Phase 3 · Days 21–30', heading:'What did the first ten days teach us?',
+    questions:['Where did work pile up under the current WIP policy?','What did you do when your own work could not move?','What small WIP experiment would help test your assumptions?'],
+    changeHeading:'Optional experiment · Adjust WIP',
+    changes:['Keep the same tasks, blockers, and work ages.','Choose a new WIP limit for Working on and Review during Days 31–40.','Compare the impact on throughput, collaboration, and work aging.'],
+    after:'Next, the facilitator chooses a WIP limit for Day 31.'
+  };
+
   const printLink='';
 
   async function refresh(c=code){if(!db||!c)return;const {data,error:err}=await db.rpc('mp_get',{room_code:c});if(err){if(err.message!==lastError.current){setError(err.message);lastError.current=err.message}setOnline(false);return}if(data){setRoom(data);setOnline(true);if(!credential){setScreen('join')}}else{setError('Room expired or cannot be found. Start a new room.');setOnline(false)}}
@@ -114,6 +143,7 @@ function App(){
   const create=()=>joinRole==='observer'?call('mp_create_observer',{name:name.trim(),avatar,capacity},'hostObserver'):call('mp_create',{name:name.trim(),avatar,capacity},'host');
   const join=()=>call(joinRole==='observer'?'mp_observe':'mp_join',{room_code:roomCode.toUpperCase().trim(),name:name.trim(),avatar},joinRole);
   const cmd=(kind,taskId=null,val=null)=>call('mp_command',{room_code:code,actor_token:token,kind,task_id:taskId,val});
+  const confirmPhaseCheckpoint=()=>call('mp_phase_checkpoint',{room_code:code,actor_token:token,expected_gate:gate,expected_day:day,expected_step:phaseCheckpointStep});
   const leave=()=>{sessionStorage.removeItem('kanban_mp_current');setCredential(null);setRoom(null);setScreen('home');setFlow(null);setSetupStep(1);setError('');history.replaceState(null,'',window.location.pathname)};
   const copyInvite=async()=>{const link=`${window.location.origin}${window.location.pathname}?room=${code}`;try{await navigator.clipboard.writeText(link);setCopied(true)}catch{setError(`Copy this address: ${link}`)}};
   const moveOnBoard=async(task,destination)=>{
@@ -189,9 +219,28 @@ function App(){
       <div className="members">{Array.from({length:n},(_,i)=>{const p=roomMembers.find(x=>x.id===i+1);return <div className={'member '+(p?.id===myId&&gate==='playing'?'active':'')} key={i}><span className="member-avatar">{p?.avatar||'·'}</span><b>{p?.name||'Waiting...'}</b><small>Player {i+1}{p?.id===myId?' · YOU':''}</small></div>})}</div>
       <div className="observer-strip"><div><b>Observers ({observers.length})</b><span className="muted small">Read-only · Do not occupy player seats</span></div><div className="observer-list">{observers.length?observers.map(o=><span className="observer-tag" key={o.id}>{o.avatar} {o.name}{o.id===myId?' · YOU':''}</span>):<span className="muted small">No observers yet</span>}</div></div>
       {gate==='lobby'&&<section className="panel decision"><p className="eyebrow dark">WAITING FOR PLAYERS</p><h2>Room lobby</h2><p className="muted">Your room is ready. Copy the invitation link and share it with students. They will join as players; you can remain a facilitator without taking a seat.</p><p><strong>{roomMembers.length} / {n}</strong> player seats filled</p>{host&&<button className="btn outline no-print" onClick={copyInvite}><Copy size={16}/>{copied?"Invite link copied!":"Copy student invitation link"}</button>}{host?<button className="btn primary" disabled={loading||roomMembers.length!==n} onClick={()=>cmd('start')}>Start simulation <ArrowRight size={17}/></button>:<div className="notice"><Clock size={18}/> {isObserver?'Observing the lobby. The host will start when player seats are full.':'Waiting for the host to start the game.'}</div>}</section>}
-      {gate==='duration'&&<section className="panel decision"><p className="eyebrow dark">DAY 20 COMPLETED</p><h2>Phase 3 — Choose your experiment</h2><p>Fresh board, 30 new tasks and WIP 3. The original Phases 1 + 2 results are preserved.</p><div className="options-row">{[10,20].map(v=><button className={'pill '+(phaseChoice===v?'active':'')} key={v} onClick={()=>setPhaseChoice(v)}>{v} days — end Day {20+v}</button>)}</div>{host?<button className="btn primary" disabled={loading} onClick={()=>cmd('duration',null,String(phaseChoice))}>Begin Phase 3</button>:<div className="notice">Waiting for the host's choice.</div>}</section>}
-      {gate==='wip'&&<section className="panel decision"><p className="eyebrow dark">START OF DAY 31</p><h2>Experiment with WIP</h2><p>Keep the same tasks, blockers, and workflow ages. Choose a WIP limit for both Working on and Review during Days 31–40. Try a lower limit to test whether finishing and helping improves flow—or whether too little capacity creates bottlenecks.</p><div className="options-row">{Array.from({length:Math.max(4,n)-1},(_,i)=>i+2).map(v=><button className={'pill '+(wipChoice===v?'active':'')} key={v} onClick={()=>setWipChoice(v)}>WIP {v}</button>)}</div>{host?<button className="btn primary" disabled={loading} onClick={()=>cmd('wip',null,String(wipChoice))}>Apply WIP {wipChoice} and begin Day 31</button>:<div className="notice">Waiting for the host's WIP decision.</div>}</section>}
-      {gate==='dsu'&&<section className="panel decision"><p className="eyebrow dark">DAY {day} · DAILY STAND-UP</p><h2>{leader?.avatar} {leader?.name||`Player ${game.leaders[day]}`} leads the DSU</h2><p className="muted">Talk before revealing cards. Discuss what the team completed, the goal for today, and blockers or people who need help. The host confirms when the conversation is complete.</p>{['What did we accomplish?','What should we focus on today?','Who needs help with blockers?'].map((t,i)=><label className="check-row" key={i}><input type="checkbox" disabled={!host} checked={dsuChecks[i]} onChange={e=>setDsuChecks(a=>a.map((v,j)=>i===j?e.target.checked:v))}/>{t}</label>)}{host&&<><label className="field-label">Optional discussion notes (not permanently saved)</label><textarea className="field" rows={2} maxLength={500} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Key concerns or decisions"/><button className="btn primary wide" disabled={!dsuChecks.every(Boolean)||loading} onClick={()=>{cmd('dsu',null,notes);setDsuChecks([false,false,false]);setNotes('')}}>Complete DSU · Reveal cards <ArrowRight size={17}/></button></>}{!host&&<div className="notice">The host will reveal the cards after the DSU.</div>}</section>}
+      {phaseCheckpoint&&<div className="mp-phase-backdrop" role="presentation">
+        <section className="mp-phase-modal" role="dialog" aria-modal="true" aria-labelledby="mp-phase-title">
+          <p className="eyebrow dark">{phaseCheckpoint==='reflection'?'CHECKPOINT 1 OF 2 · GROUP REFLECTION':'CHECKPOINT 2 OF 2 · NEXT EXPERIMENT'}</p>
+          <p className="mp-phase-previous">{phaseCheckpointInfo.finished} complete</p>
+          <h2 id="mp-phase-title">{phaseCheckpoint==='reflection'?phaseCheckpointInfo.heading:phaseCheckpointInfo.changeHeading}</h2>
+          {phaseCheckpoint==='reflection'?<>
+            <p>Pause before changing the rules. Discuss your experience as a group. There are no required answers — use what happened on your board.</p>
+            <ul>{phaseCheckpointInfo.questions.map(q=><li key={q}>{q}</li>)}</ul>
+          </>:<>
+            <p>The facilitator explains the changes before the team begins the next phase.</p>
+            <ul>{phaseCheckpointInfo.changes.map(c=><li key={c}>{c}</li>)}</ul>
+            <p className="mp-phase-next">{phaseCheckpointInfo.after}</p>
+          </>}
+          {host?<button className="btn primary wide" disabled={loading} onClick={confirmPhaseCheckpoint}>
+            {loading?'Confirming…':phaseCheckpoint==='reflection'?'Discussion complete · OK':'Changes explained · OK'} <ArrowRight size={17}/>
+          </button>:<div className="notice"><Clock size={18}/> Discuss with the group. Waiting for the facilitator / host to select OK.</div>}
+          <p className="muted small">Both checkpoints are shared with everyone in this room. The host confirms each one.</p>
+        </section>
+      </div>}
+      {gate==='duration'&&!phaseCheckpoint&&<section className="panel decision"><p className="eyebrow dark">DAY 20 COMPLETED</p><h2>Phase 3 — Choose your experiment</h2><p>Fresh board, 30 new tasks and WIP 3. The original Phases 1 + 2 results are preserved.</p><div className="options-row">{[10,20].map(v=><button className={'pill '+(phaseChoice===v?'active':'')} key={v} onClick={()=>setPhaseChoice(v)}>{v} days — end Day {20+v}</button>)}</div>{host?<button className="btn primary" disabled={loading} onClick={()=>cmd('duration',null,String(phaseChoice))}>Begin Phase 3</button>:<div className="notice">Waiting for the host's choice.</div>}</section>}
+      {gate==='wip'&&!phaseCheckpoint&&<section className="panel decision"><p className="eyebrow dark">START OF DAY 31</p><h2>Experiment with WIP</h2><p>Keep the same tasks, blockers, and workflow ages. Choose a WIP limit for both Working on and Review during Days 31–40. Try a lower limit to test whether finishing and helping improves flow—or whether too little capacity creates bottlenecks.</p><div className="options-row">{Array.from({length:Math.max(4,n)-1},(_,i)=>i+2).map(v=><button className={'pill '+(wipChoice===v?'active':'')} key={v} onClick={()=>setWipChoice(v)}>WIP {v}</button>)}</div>{host?<button className="btn primary" disabled={loading} onClick={()=>cmd('wip',null,String(wipChoice))}>Apply WIP {wipChoice} and begin Day 31</button>:<div className="notice">Waiting for the host's WIP decision.</div>}</section>}
+      {gate==='dsu'&&!phaseCheckpoint&&<section className="panel decision"><p className="eyebrow dark">DAY {day} · DAILY STAND-UP</p><h2>{leader?.avatar} {leader?.name||`Player ${game.leaders[day]}`} leads the DSU</h2><p className="muted">Talk before revealing cards. Discuss what the team completed, the goal for today, and blockers or people who need help. The host confirms when the conversation is complete.</p>{['What did we accomplish?','What should we focus on today?','Who needs help with blockers?'].map((t,i)=><label className="check-row" key={i}><input type="checkbox" disabled={!host} checked={dsuChecks[i]} onChange={e=>setDsuChecks(a=>a.map((v,j)=>i===j?e.target.checked:v))}/>{t}</label>)}{host&&<><label className="field-label">Optional discussion notes (not permanently saved)</label><textarea className="field" rows={2} maxLength={500} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Key concerns or decisions"/><button className="btn primary wide" disabled={!dsuChecks.every(Boolean)||loading} onClick={()=>{cmd('dsu',null,notes);setDsuChecks([false,false,false]);setNotes('')}}>Complete DSU · Reveal cards <ArrowRight size={17}/></button></>}{!host&&<div className="notice">The host will reveal the cards after the DSU.</div>}</section>}
       {gate==='playing'&&<>
         <section className="panel compact"><div className="phase-strip"><div className={phase(day)===1?'current':''}>Phase 1 <small>Unlimited WIP</small></div><div className={phase(day)===2?'current':''}>Phase 2 <small>WIP 3 + DSU</small></div><div className={phase(day)===3?'current':''}>Phase 3 <small>Fresh board + DSU</small></div></div><div className="day-banner"><h2>Day {day} {game.phaseLength!=null?`of ${20+game.phaseLength}`:''}</h2><span>Working on / Review WIP: <b>{day<=10?'Unlimited':day<=30?'3 / 3':`${game.wip} / ${game.wip}`}</b></span></div><p className="muted small" style={{margin:'8px 0 12px'}}>The day advances automatically after everyone completes their card actions.</p>{day>10&&<p className="dsu-summary">DSU led by {leader?.avatar} {leader?.name||`Player ${game.leaders[day]}`}</p>}
           <div className="cards-grid">{hand.map(({p,c})=>{const member=roomMembers.find(x=>x.id===p);const done=donePlayers.includes(p);return <div className={'playing-card '+(c.red?'red':'black')+(p===myId&&!done?' focused':'')+(done?' completed':'')} key={p}><small>{member?.avatar} {member?.name||`P${p}`}</small><b>{c.rank}{c.suit}</b><span>{c.red?'RED':'BLACK'}</span>{done?<em>✓ Done today</em>:p===myId&&!isObserver?<em>● YOU CAN ACT</em>:<em>Ready</em>}</div>})}</div>

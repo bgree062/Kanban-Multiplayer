@@ -1,0 +1,11 @@
+/* Shared phase transitions: two facilitator-controlled confirmations. */
+.mp-phase-backdrop{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(9,30,48,.72);overflow-y:auto}
+.mp-phase-modal{width:min(650px,100%);max-height:calc(100vh - 36px);overflow-y:auto;border-radius:17px;background:#fff;border:2px solid #d6a04c;padding:clamp(20px,4vw,34px);box-shadow:0 22px 70px rgba(5,25,40,.32);color:#19384d}
+.mp-phase-modal h2{font-size:clamp(22px,3.5vw,30px);letter-spacing:-.5px;margin:8px 0 14px;line-height:1.2}
+.mp-phase-modal p{line-height:1.6}
+.mp-phase-previous{font-size:12px;font-weight:750;color:#7c5427;margin:10px 0 0}
+.mp-phase-modal ul{background:#f3f7f9;border:1px solid #dce6ef;border-radius:10px;padding:16px 22px 16px 37px;line-height:1.6}
+.mp-phase-modal li{padding:3px 0}
+.mp-phase-next{font-weight:700;color:#22506c}
+.mp-phase-modal .btn{margin-top:14px}
+@media(max-width:520px){.mp-phase-backdrop{padding:8px}.mp-phase-modal{max-height:calc(100vh - 16px);border-radius:12px;padding:18px}.mp-phase-modal ul{padding:12px 15px 12px 29px}}
